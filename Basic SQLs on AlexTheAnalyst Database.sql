@@ -143,7 +143,7 @@ select * from pop_vac_per_loc
 where vaccination_perc = pop_vaccinated
   and new_vaccinations is not null
 
-
+Use PortfolioProjectAlexTheAnalyst;
 --TEMP TABLE
 -- Creating a temp table from the data above
 DROP TABLE if exists #PercentPopulationVaccincated
@@ -179,3 +179,22 @@ FROM #PercentPopulationVaccincated
 
 --VIEWS
 -- Creating View to store data for later visualizations
+
+Use PortfolioProjectAlexTheAnalyst;
+Create View PercentPopulationVaccincated
+AS
+SELECT			dea.continent,
+				dea.location,
+				dea.date,
+				dea.population,
+				vac.new_vaccinations,
+				SUM(CONVERT(INT,new_vaccinations)) over (partition by dea.location order by dea.location, dea.date) 
+					as rolling_people_vaccinated
+				--,SUM(CONVERT(INT,new_vaccinations)) over (partition by dea.location order by dea.location, dea.date) /
+				--   dea.population * 100 as vaccinations_percentage
+                 
+		FROM [PortfolioProjectAlexTheAnalyst].[dbo].[CovidDeaths$] dea
+			 JOIN [PortfolioProjectAlexTheAnalyst].[dbo].[CovidVacinations$] vac
+				  ON dea.location = vac.location and dea.date = vac.date
+		WHERE dea.continent is not null 
+		  AND dea.date <= '2021-04-30'
